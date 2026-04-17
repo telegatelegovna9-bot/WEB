@@ -1,42 +1,39 @@
-# Crypto Intelligence Screener (MVP)
+# Crypto Intelligence Screener (SaaS Prototype)
 
-Профессиональный SaaS-прототип крипто-скринера с объясняющими сигналами, вероятностной оценкой и историческими совпадениями.
+Интерпретирующий крипто-скринер: не только обнаружение событий, но и объяснение сигналов, оценка вероятности и сравнение с историческими кейсами.
 
-## Что реализовано
+## Реализованные компоненты
 
 - **Data Engine**
-  - Мульти-биржевой слой (Binance, OKX, Bybit, MEXC, Gate, Bitget) через коннекторы.
-  - Единый формат данных `MarketTick`.
-  - Подготовка к websocket-first и REST fallback (в MVP используются mock-коннекторы).
+  - Мульти-биржевой слой: Binance, OKX, Bybit, MEXC, Gate, Bitget.
+  - Нормализация данных в `MarketTick`.
+  - WebSocket stream (MVP: mock connectors) + архитектурный задел под REST fallback.
+
 - **Signal Detection Engine**
-  - Детекторы: Pump/Dump, Order Book Density proxy, Listing heuristic, Pattern breakout.
+  - Pump/Dump detector.
+  - Order Book Density proxy detector.
+  - Listing detector (MVP heuristic).
+  - Pattern breakout detector.
+
 - **Signal Intelligence Engine**
-  - Объяснение сигналов: причины, тип поведения рынка, confidence score 0–100%, исторические аналогии.
+  - Причины сигнала.
+  - Тип поведения рынка: Accumulation / Distribution / Breakout / Manipulation.
+  - Probability score 0–100.
+  - Исторические совпадения.
+
 - **Strategy Engine**
-  - Модульная стратегия `Strategy` + registry для добавления новых стратегий.
-- **Notification System**
-  - Telegram-ready notifier с антиспам кулдауном.
-- **Frontend UI/UX**
-  - Реал-тайм поток сигналов через WebSocket.
-  - Дашборд с drag&drop карточками.
-  - Панель объяснения сигнала, тепловая карта, streaming chart proxy.
+  - Модульная модель стратегий с расширяемым интерфейсом.
 
-## Архитектура
+- **Notification Engine**
+  - Telegram-ready слой с антиспам-кулдауном.
 
-```mermaid
-flowchart LR
-  EX[Exchange Connectors] --> DE[Data Engine]
-  DE --> DS[(Market Store)]
-  DS --> DET[Detection Engine]
-  DET --> STR[Strategy Engine]
-  STR --> INT[Signal Intelligence]
-  INT --> SIG[(Signal Store)]
-  SIG --> API[FastAPI + WS]
-  SIG --> NTF[Notification Engine]
-  API --> FE[Dashboard UI]
-```
+- **Frontend (screener UI)**
+  - Hero + вход в скринер.
+  - Мозаика мульти-чартов (6 карт) и правая таблица монет с метриками.
+  - Фильтры бирж, таймфрейм-панель, live-обновление через WS.
+  - Список интеллектуальных сигналов и панель объяснения.
 
-## Быстрый запуск
+## Запуск
 
 ```bash
 python -m venv .venv
@@ -45,19 +42,11 @@ pip install -r requirements.txt
 uvicorn web.main:app --reload
 ```
 
-Открыть: `http://localhost:8000`
+Откройте: `http://localhost:8000`
 
-## Основные API
+## API
 
-- `GET /api/markets` — snapshot рынков.
-- `GET /api/signals` — последние сигналы.
-- `POST /api/simulate/tick` — тестовый тик.
-- `WS /ws/stream` — real-time поток тиков и сигналов.
-
-## Что добавить следующим этапом
-
-1. Подключение реальных биржевых WebSocket API + REST fallback пер exchange.
-2. TimescaleDB + Redis/Kafka для масштабирования real-time конвейера.
-3. Реальный order book ingestion и big-player footprint модели.
-4. Backtest/forward-test scoring и accuracy ranking по стратегиям.
-5. Полноценная Telegram интеграция (бот, шаблоны, фильтры, юзер-профили).
+- `GET /api/markets` — snapshot скринера (ранг, natr-like, объем 24h, изменения цены).
+- `GET /api/signals` — последние интеллектуальные сигналы.
+- `POST /api/simulate/tick` — инжект тестового тика.
+- `WS /ws/stream` — realtime ticks + signals.
