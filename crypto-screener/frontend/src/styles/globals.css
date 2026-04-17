@@ -3,17 +3,9 @@
 @tailwind utilities;
 
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
-  }
+  --foreground-rgb: 255, 255, 255;
+  --background-start-rgb: 13, 17, 23;
+  --background-end-rgb: 22, 27, 34;
 }
 
 body {
@@ -24,10 +16,86 @@ body {
       rgb(var(--background-end-rgb))
     )
     rgb(var(--background-start-rgb));
+  min-height: 100vh;
 }
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
   }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Glass morphism effects */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.glass-card {
+  background: rgba(22, 27, 34, 0.8);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Signal animations */
+@keyframes signalEnter {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.signal-enter {
+  animation: signalEnter 0.3s ease-out forwards;
+}
+
+/* Confidence meter gradient */
+.confidence-low {
+  background: linear-gradient(90deg, #da3633 0%, #d29922 100%);
+}
+
+.confidence-medium {
+  background: linear-gradient(90deg, #d29922 0%, #2ea043 100%);
+}
+
+.confidence-high {
+  background: linear-gradient(90deg, #2ea043 0%, #3fb950 100%);
+}
+
+/* Glow effects for important elements */
+.glow-green {
+  box-shadow: 0 0 20px rgba(46, 160, 67, 0.4);
+}
+
+.glow-red {
+  box-shadow: 0 0 20px rgba(218, 54, 51, 0.4);
+}
+
+.glow-blue {
+  box-shadow: 0 0 20px rgba(88, 166, 255, 0.4);
 }
