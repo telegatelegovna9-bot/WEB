@@ -2,8 +2,8 @@ from abc import ABC, abstractmethod
 from typing import Optional, List, Dict, Any
 import asyncio
 import aiohttp
-from ..models.schemas import TickerData, OrderBook, Trade
-from ..core.enums import Exchange
+from ...models.schemas import TickerData, OrderBook, Trade
+from ...core.enums import Exchange
 
 
 class BaseExchangeConnector(ABC):

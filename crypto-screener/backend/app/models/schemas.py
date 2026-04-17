@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field
 from typing import Optional, List, Dict, Any
 from datetime import datetime
-from .enums import Exchange, SignalType, MarketBehavior, Timeframe
+from ..core.enums import Exchange, SignalType, MarketBehavior, Timeframe
 
 
 class TickerData(BaseModel):

@@ -1,15 +1,15 @@
 'use client';
 
-import { useMarketStore } from '@/store/marketStore';
+interface ConnectionStatusProps {
+  connected: boolean;
+}
 
-export function ConnectionStatus() {
-  const wsConnected = useMarketStore((state) => state.wsConnected);
-
+export function ConnectionStatus({ connected }: ConnectionStatusProps) {
   return (
     <div className="flex items-center gap-2 text-sm">
-      <div className={`w-2 h-2 rounded-full ${wsConnected ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`} />
-      <span className={wsConnected ? 'text-green-500' : 'text-red-500'}>
-        {wsConnected ? 'Connected' : 'Disconnected'}
+      <div className={`w-2 h-2 rounded-full ${connected ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`} />
+      <span className={connected ? 'text-green-500' : 'text-red-500'}>
+        {connected ? 'Connected' : 'Disconnected'}
       </span>
     </div>
   );

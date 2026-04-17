@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import structlog
+import logging
 
 from .core.config import settings
 from .api.routes import create_router
