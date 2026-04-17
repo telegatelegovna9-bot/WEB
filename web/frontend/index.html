@@ -3,290 +3,323 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Scolpboard — Crypto Screener Intelligence</title>
+  <title>Scolpboard Screener</title>
   <style>
     :root {
       color-scheme: dark;
-      --bg: #06080d;
-      --bg2: #0c1018;
-      --line: #1f2635;
-      --line-soft: #141a26;
-      --txt: #e6e9ef;
-      --muted: #8b93a6;
-      --green: #25d67a;
-      --red: #ff4b61;
-      --amber: #ffb74a;
-      --chip: #121722;
-      --panel: #0b0f17;
-      --radius: 12px;
+      --bg: #050608;
+      --panel: #0d0f14;
+      --panel2: #0a0c11;
+      --line: #20242f;
+      --txt: #d8dde8;
+      --muted: #7e8799;
+      --green: #23d06f;
+      --red: #ff4d63;
+      --orange: #cc7f5a;
     }
     * { box-sizing: border-box; }
     body {
       margin: 0;
-      font-family: Inter, ui-sans-serif, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      background: radial-gradient(1200px 600px at 50% -200px, #131a2a 0%, var(--bg) 55%);
+      background: var(--bg);
       color: var(--txt);
+      font-family: JetBrains Mono, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     }
-    .container { width: min(1720px, 96vw); margin: 0 auto; }
 
-    .nav {
-      position: sticky; top: 0; z-index: 20;
+    .header {
+      height: 46px;
       border-bottom: 1px solid var(--line);
-      background: rgba(6,8,13,.85);
-      backdrop-filter: blur(6px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 12px;
+      background: #080a0f;
+      position: sticky;
+      top: 0;
+      z-index: 20;
     }
-    .nav-inner { height: 64px; display: flex; align-items: center; justify-content: space-between; }
-    .logo { font-size: 34px; letter-spacing: 2px; font-weight: 700; }
-    .nav-links { display: flex; gap: 28px; color: var(--muted); font-size: 15px; }
-    .nav-links a { color: inherit; text-decoration: none; }
-    .cta { border: 1px solid #313a4f; background: #111724; color: #e9edfa; padding: 10px 14px; border-radius: 10px; }
+    .left, .right { display: flex; align-items: center; gap: 8px; }
+    .logo { font-weight: 700; letter-spacing: 1px; font-size: 15px; color: #f0f2f7; margin-right: 6px; }
+    .btn {
+      border: 1px solid #2c3342;
+      background: #121723;
+      color: #cfd6e4;
+      font-size: 11px;
+      padding: 6px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      min-width: 28px;
+      text-align: center;
+    }
+    .btn.active { border-color: #4e6084; background: #1a2233; }
 
-    .hero { text-align: center; padding: 120px 0 90px; border-bottom: 1px solid var(--line-soft); }
-    h1 { margin: 0; font-size: clamp(44px, 7vw, 88px); line-height: 1.04; letter-spacing: -1px; }
-    .subtitle { margin: 28px auto 36px; color: #b3b9c8; font-size: clamp(18px, 2.2vw, 34px); max-width: 920px; }
-    .open-btn { font-size: 24px; color: #f0f3ff; background: linear-gradient(180deg, #20293a, #151b27); border: 1px solid #384259; border-radius: 999px; padding: 18px 42px; cursor: pointer; }
-    .tiny { margin-top: 14px; color: #5f687d; font-size: 13px; }
+    .app {
+      width: min(1880px, 100vw);
+      margin: 0 auto;
+      padding: 8px;
+    }
 
-    .workspace-wrap { padding: 36px 0 36px; }
-    .workspace {
+    .board {
       border: 1px solid var(--line);
-      border-radius: 22px;
-      background: linear-gradient(180deg, #0b1019 0%, #090d15 100%);
+      background: #0b0d12;
+      border-radius: 8px;
       overflow: hidden;
     }
 
-    .toolbar {
+    .board-top {
+      height: 38px;
       border-bottom: 1px solid var(--line);
-      padding: 10px;
+      background: #0b0e15;
       display: flex;
       justify-content: space-between;
-      gap: 12px;
       align-items: center;
+      padding: 0 8px;
+      gap: 10px;
       flex-wrap: wrap;
     }
-    .controls { display: flex; gap: 8px; flex-wrap: wrap; }
-    .chip {
-      font-size: 12px;
-      color: #c7cee0;
-      padding: 8px 10px;
-      border-radius: 8px;
-      background: var(--chip);
-      border: 1px solid #252c3d;
-      cursor: pointer;
-      user-select: none;
-    }
-    .chip.active { border-color: #4e5f82; background: #171f30; }
+    .board-controls { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
 
-    .workspace-grid {
+    .layout {
       display: grid;
-      grid-template-columns: 1fr 1fr 1fr 330px;
-      grid-template-rows: 330px 330px;
+      grid-template-columns: 1fr 1fr 1fr 340px;
+      grid-template-rows: 390px 390px;
       gap: 1px;
       background: var(--line);
     }
 
-    .card {
-      background: var(--panel);
+    .chart-card {
+      background: var(--panel2);
       display: flex;
       flex-direction: column;
       min-height: 0;
     }
     .chart-head {
-      height: 34px;
-      border-bottom: 1px solid #171d2a;
+      height: 30px;
+      border-bottom: 1px solid #171b24;
       display: flex;
-      align-items: center;
       justify-content: space-between;
-      padding: 0 10px;
-      font-size: 12px;
+      align-items: center;
+      padding: 0 8px;
+      font-size: 11px;
+      background: #0d1017;
     }
-    .symbol { font-weight: 600; letter-spacing: .3px; }
-    .meta { color: var(--muted); }
-    .green { color: var(--green); }
-    .red { color: var(--red); }
-
+    .chart-symbol { color: #f0f3ff; font-size: 13px; }
+    .chart-stats { display: flex; gap: 8px; }
     .chart-body { position: relative; flex: 1; }
-    canvas.mini-chart { width: 100%; height: 100%; display:block; }
-    .watermark {
+    .chart-watermark {
       position: absolute;
       inset: 0;
       display: grid;
       place-items: center;
-      font-size: 72px;
-      letter-spacing: 2px;
-      color: rgba(255,255,255,.12);
+      font-size: 60px;
+      color: rgba(255,255,255,.14);
       pointer-events: none;
+      letter-spacing: 1px;
     }
+    canvas.mini { width: 100%; height: 100%; display: block; }
+
+    .green { color: var(--green); }
+    .red { color: var(--red); }
+    .muted { color: var(--muted); }
 
     .sidebar {
       grid-row: 1 / span 2;
-      border-left: 1px solid #171d2a;
-      overflow: hidden;
-    }
-    .side-head {
-      height: 36px;
-      border-bottom: 1px solid #171d2a;
+      background: #0d1016;
+      border-left: 1px solid #171b24;
       display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 10px;
-      font-size: 12px;
-      color: var(--muted);
+      flex-direction: column;
+      min-height: 0;
     }
-    .coin-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-    .coin-table thead th {
-      text-align: left;
-      font-weight: 500;
-      color: #7f879b;
-      border-bottom: 1px solid #171d2a;
-      padding: 8px 8px;
-      background: #0b1018;
+    .side-top {
+      height: 30px;
+      border-bottom: 1px solid #171b24;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 8px;
+      font-size: 11px;
+      background: #0f131b;
+    }
+    .table-wrap { flex: 1; overflow: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 11px; }
+    thead th {
       position: sticky;
       top: 0;
       z-index: 2;
+      background: #0f141e;
+      color: #9aa3b7;
+      font-weight: 500;
+      text-align: left;
+      padding: 6px 6px;
+      border-bottom: 1px solid #1b202c;
     }
-    .coin-scroll { height: calc(100% - 36px); overflow: auto; }
-    .coin-table tbody td { padding: 7px 8px; border-bottom: 1px solid #111620; }
-    .coin-table tbody tr:hover { background: #0f1522; cursor: pointer; }
+    tbody td {
+      padding: 6px 6px;
+      border-bottom: 1px solid #11151e;
+      white-space: nowrap;
+    }
+    tbody tr:hover { background: #121926; cursor: pointer; }
 
     .intel {
-      margin-top: 14px;
-      border-top: 1px solid var(--line);
-      background: #090e16;
+      margin-top: 8px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
       display: grid;
-      grid-template-columns: 2fr 1fr;
-      gap: 1px;
+      grid-template-columns: 390px 1fr;
       background: var(--line);
+      gap: 1px;
     }
-    .intel-card { background: #0c111a; padding: 16px; min-height: 230px; }
-    .intel-title { margin: 0 0 12px; font-size: 16px; }
-    .signal-list { max-height: 200px; overflow: auto; display: grid; gap: 8px; }
-    .signal-item {
-      border: 1px solid #20283a; border-radius: 10px; padding: 10px; background: #0e1420;
-      display: flex; justify-content: space-between; gap: 10px;
+    .intel-left, .intel-right { background: #0b0f16; min-height: 220px; }
+    .intel-head {
+      height: 30px;
+      border-bottom: 1px solid #1a202b;
+      padding: 0 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11px;
+      color: #a3adc3;
     }
-    .badge { padding: 4px 7px; border-radius: 999px; font-size: 11px; background: #1a2232; color: #cad2e8; }
-    .explain { color: #b0b8cd; font-size: 13px; line-height: 1.45; }
+    .signal-list { padding: 8px; display: grid; gap: 6px; max-height: 300px; overflow: auto; }
+    .signal {
+      border: 1px solid #242c3a;
+      background: #0f1521;
+      border-radius: 6px;
+      padding: 8px;
+      font-size: 11px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+    .signal:hover { border-color: #47608f; }
+    .score { font-weight: 700; color: #dfe6f9; }
+    .explain { padding: 10px; font-size: 12px; line-height: 1.45; color: #b7bfd3; }
 
-    @media (max-width: 1440px) {
-      .workspace-grid { grid-template-columns: 1fr 1fr 1fr; }
-      .sidebar { grid-column: 1 / -1; grid-row: auto; height: 280px; }
-    }
-    @media (max-width: 1100px) {
-      .workspace-grid { grid-template-columns: 1fr 1fr; grid-template-rows: repeat(3, 270px) 280px; }
+    @media (max-width: 1520px) {
+      .layout { grid-template-columns: 1fr 1fr 1fr; grid-template-rows: 320px 320px 300px; }
+      .sidebar { grid-column: 1 / -1; grid-row: auto; }
       .intel { grid-template-columns: 1fr; }
-      .hero { padding-top: 70px; }
+    }
+    @media (max-width: 1080px) {
+      .layout { grid-template-columns: 1fr 1fr; grid-template-rows: repeat(3, 260px) 280px; }
     }
   </style>
 </head>
 <body>
-  <header class="nav">
-    <div class="container nav-inner">
+  <header class="header">
+    <div class="left">
       <div class="logo">scolpboard</div>
-      <nav class="nav-links">
-        <a href="#workspace">Цены</a>
-        <a href="#intel">Документация</a>
-        <a href="#intel">Telegram</a>
-      </nav>
-      <button class="cta">Вход / Регистрация</button>
+      <div id="exchangeBtns"></div>
+    </div>
+    <div class="right">
+      <div class="btn">1M</div>
+      <div class="btn">5M</div>
+      <div class="btn active">15M</div>
+      <div class="btn">1H</div>
+      <div class="btn">4H</div>
+      <div class="btn">D</div>
+      <div class="btn">RU</div>
     </div>
   </header>
 
-  <section class="hero container">
-    <h1>Всё, что важно для скальпинга.<br>На одной доске.</h1>
-    <div class="subtitle">Лишние данные — это шум. Мы оставляем только суть: сигналы, объяснения, вероятность и поведение крупных игроков.</div>
-    <button class="open-btn" onclick="document.getElementById('workspace').scrollIntoView({behavior:'smooth'})">Открыть скринер</button>
-    <div class="tiny">7 дней бесплатно • нужен только Telegram</div>
-  </section>
-
-  <section id="workspace" class="workspace-wrap container">
-    <div class="workspace">
-      <div class="toolbar">
-        <div class="controls" id="exchangeFilters"></div>
-        <div class="controls">
-          <div class="chip">1M</div><div class="chip">5M</div><div class="chip active">15M</div><div class="chip">1H</div><div class="chip">4H</div><div class="chip">1D</div>
+  <main class="app">
+    <section class="board">
+      <div class="board-top">
+        <div class="board-controls">
+          <div class="btn active">Все</div>
+          <div class="btn">⚡</div>
+          <div class="btn">Объём</div>
+          <div class="btn">Breakout</div>
+          <div class="btn">Orderbook</div>
+          <div class="btn">Listing</div>
+        </div>
+        <div class="board-controls">
+          <div class="btn">Настройки</div>
+          <div class="btn">Звук</div>
+          <div class="btn">🔔</div>
         </div>
       </div>
+      <div class="layout" id="layout"></div>
+    </section>
 
-      <div class="workspace-grid" id="chartGrid"></div>
-    </div>
-
-    <div id="intel" class="intel">
-      <article class="intel-card">
-        <h3 class="intel-title">Сигналы (интеллект + объяснение)</h3>
+    <section class="intel">
+      <article class="intel-left">
+        <div class="intel-head"><span>Сигналы (Live)</span><span id="signalCount">0</span></div>
         <div class="signal-list" id="signalList"></div>
       </article>
-      <article class="intel-card">
-        <h3 class="intel-title">Разбор сигнала</h3>
-        <div id="signalExplain" class="explain">Выберите сигнал справа, чтобы увидеть причины, тип поведения и исторические совпадения.</div>
+      <article class="intel-right">
+        <div class="intel-head"><span>Разбор сигнала</span><span>AI explanation</span></div>
+        <div class="explain" id="signalExplain">Выберите сигнал для просмотра причин, вероятности и исторических совпадений.</div>
       </article>
-    </div>
-  </section>
+    </section>
+  </main>
 
 <script>
 const state = {
-  markets: [],
-  signals: [],
-  selectedSignal: null,
-  exchangeFilter: 'all',
-  series: {},
-  exchanges: ['all','binance','okx','bybit','mexc','gate','bitget'],
+  markets: [], signals: [], series: {}, selectedSignal: null,
+  exchangeFilter: 'all', exchanges: ['all','binance','okx','bybit','mexc','gate','bitget']
 };
 
-function fmtCompact(v){
-  if(v >= 1_000_000_000) return (v/1_000_000_000).toFixed(1)+'B';
-  if(v >= 1_000_000) return (v/1_000_000).toFixed(1)+'M';
-  if(v >= 1_000) return (v/1_000).toFixed(1)+'K';
+function fmt(v){
+  if(v >= 1_000_000_000) return (v / 1_000_000_000).toFixed(1) + 'B';
+  if(v >= 1_000_000) return (v / 1_000_000).toFixed(1) + 'M';
+  if(v >= 1_000) return (v / 1_000).toFixed(1) + 'K';
   return Number(v).toFixed(0);
 }
 
-function exchangeChips(){
-  const el = document.getElementById('exchangeFilters');
-  el.innerHTML = state.exchanges.map(ex => `<div class="chip ${state.exchangeFilter===ex?'active':''}" onclick="setExchange('${ex}')">${ex.toUpperCase()}</div>`).join('');
+function renderExchangeBtns(){
+  const wrap = document.getElementById('exchangeBtns');
+  wrap.innerHTML = state.exchanges.map(ex =>
+    `<button class="btn ${state.exchangeFilter===ex?'active':''}" onclick="setExchange('${ex}')">${ex.toUpperCase()}</button>`
+  ).join('');
 }
-window.setExchange = (exchange) => { state.exchangeFilter = exchange; renderWorkspace(); exchangeChips(); }
+window.setExchange = (ex) => { state.exchangeFilter = ex; renderExchangeBtns(); renderBoard(); }
 
-function applyFilter(rows){
-  if(state.exchangeFilter === 'all') return rows;
-  return rows.filter(r => r.exchange === state.exchangeFilter);
+function filteredMarkets(){
+  if(state.exchangeFilter === 'all') return state.markets;
+  return state.markets.filter(m => m.exchange === state.exchangeFilter);
 }
 
-function renderWorkspace(){
-  const grid = document.getElementById('chartGrid');
-  const filtered = applyFilter(state.markets);
-  const top = filtered.slice(0, 6);
-  const sideRows = filtered.slice(0, 40);
+function renderBoard(){
+  const rows = filteredMarkets();
+  const top = rows.slice(0, 6);
+  const list = rows.slice(0, 120);
 
-  const cards = top.map((m, i) => {
-    const sign = m.day_change_pct >= 0 ? 'green' : 'red';
-    return `
-      <section class="card">
-        <div class="chart-head">
-          <div><span class="symbol">${m.symbol.replace('USDT','')}</span> <span class="meta">${m.exchange.toUpperCase()} · F</span></div>
-          <div><span class="${sign}">${m.day_change_pct}%</span> · <span class="meta">R ${m.rank}</span></div>
+  const cards = top.map((m, i) => `
+    <section class="chart-card">
+      <div class="chart-head">
+        <div><span class="chart-symbol">${m.symbol.replace('USDT','')}</span> <span class="muted">BI-F</span></div>
+        <div class="chart-stats">
+          <span class="${m.day_change_pct>=0?'green':'red'}">${m.day_change_pct}</span>
+          <span class="muted">NATR ${m.natr}</span>
+          <span class="muted">${fmt(m.volume_24h)}</span>
         </div>
-        <div class="chart-body">
-          <canvas class="mini-chart" id="chart-${i}"></canvas>
-          <div class="watermark">${m.symbol.replace('USDT','')}</div>
-        </div>
-      </section>
-    `;
-  }).join('');
+      </div>
+      <div class="chart-body">
+        <canvas id="c${i}" class="mini"></canvas>
+        <div class="chart-watermark">${m.symbol.replace('USDT','')}</div>
+      </div>
+    </section>
+  `).join('');
 
   const sidebar = `
-    <aside class="card sidebar">
-      <div class="side-head"><span>Монеты (${filtered.length})</span><span>24h скринер</span></div>
-      <div class="coin-scroll">
-        <table class="coin-table">
-          <thead><tr><th>Тикер</th><th>Изм день</th><th>Ренк</th><th>NATR</th><th>Объём 24h</th></tr></thead>
+    <aside class="sidebar">
+      <div class="side-top"><span>Монеты (${rows.length})</span><span class="muted">24h</span></div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Тикер</th><th>Изм день</th><th>Ранг</th><th>NATR</th><th>Объём 24h</th></tr>
+          </thead>
           <tbody>
-            ${sideRows.map(row => `
+            ${list.map(row => `
               <tr onclick="focusCoin('${row.symbol}')">
                 <td>${row.symbol.replace('USDT','')}</td>
-                <td class="${row.day_change_pct >= 0 ? 'green' : 'red'}">${row.day_change_pct}</td>
+                <td class="${row.day_change_pct>=0?'green':'red'}">${row.day_change_pct}</td>
                 <td>${row.rank}</td>
                 <td>${row.natr}</td>
-                <td>${fmtCompact(row.volume_24h)}</td>
+                <td>${fmt(row.volume_24h)}</td>
               </tr>
             `).join('')}
           </tbody>
@@ -295,101 +328,94 @@ function renderWorkspace(){
     </aside>
   `;
 
-  grid.innerHTML = cards + sidebar;
-
-  top.forEach((m, i) => drawMini(`chart-${i}`, m.symbol));
-  renderSignals();
+  document.getElementById('layout').innerHTML = cards + sidebar;
+  top.forEach((m, i) => drawChart(`c${i}`, m.symbol));
 }
 
 window.focusCoin = (symbol) => {
-  const signal = state.signals.find(s => s.symbol === symbol);
-  if(signal){ showSignal(signal.id); }
+  const found = state.signals.find(s => s.symbol === symbol);
+  if(found) showSignal(found.id);
 }
 
-function drawMini(id, symbol){
+function drawChart(id, symbol){
   const canvas = document.getElementById(id);
   if(!canvas) return;
-  const dpr = window.devicePixelRatio || 1;
   const rect = canvas.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
   canvas.width = Math.floor(rect.width * dpr);
   canvas.height = Math.floor(rect.height * dpr);
   const ctx = canvas.getContext('2d');
   ctx.scale(dpr, dpr);
 
-  const w = rect.width, h = rect.height;
+  const w = rect.width; const h = rect.height;
   ctx.clearRect(0,0,w,h);
 
-  const values = (state.series[symbol] || []).slice(-70);
-  if(values.length < 2) return;
+  const arr = (state.series[symbol] || []).slice(-100);
+  if(arr.length < 2) return;
 
-  for(let i=0;i<8;i++){
-    const y = (h/8)*i;
-    ctx.strokeStyle = '#121a28';
+  ctx.strokeStyle = '#141a24';
+  for(let i=0;i<10;i++){
+    const y = i * (h/10);
     ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(w,y); ctx.stroke();
   }
 
-  const max = Math.max(...values), min = Math.min(...values);
-  const up = values[values.length-1] >= values[0];
-  ctx.strokeStyle = up ? '#2cd67f' : '#ff566b';
-  ctx.lineWidth = 1.7;
+  const max = Math.max(...arr), min = Math.min(...arr);
+  const up = arr[arr.length-1] >= arr[0];
+  ctx.strokeStyle = up ? '#22d66f' : '#ff5166';
+  ctx.lineWidth = 1.5;
   ctx.beginPath();
-  values.forEach((v, i) => {
-    const x = (i / (values.length - 1)) * w;
-    const y = h - ((v-min) / (max-min || 1)) * h;
-    if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+  arr.forEach((v, i) => {
+    const x = i * (w / (arr.length - 1));
+    const y = h - ((v - min) / (max - min || 1)) * h;
+    if(i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
   });
   ctx.stroke();
-
-  ctx.fillStyle = up ? 'rgba(44,214,127,.12)' : 'rgba(255,86,107,.12)';
-  ctx.lineTo(w,h); ctx.lineTo(0,h); ctx.closePath(); ctx.fill();
 }
 
 function renderSignals(){
-  const el = document.getElementById('signalList');
-  el.innerHTML = state.signals.slice(0, 15).map(s => `
-    <div class="signal-item" onclick="showSignal('${s.id}')">
+  document.getElementById('signalCount').textContent = state.signals.length;
+  const html = state.signals.slice(0, 25).map(s => `
+    <div class="signal" onclick="showSignal('${s.id}')">
       <div>
-        <div><strong>${s.symbol}</strong> <span class="badge">${s.signal_type}</span></div>
-        <div class="meta">${s.behavior}</div>
+        <div><strong>${s.symbol}</strong> <span class="muted">${s.signal_type}</span></div>
+        <div class="muted">${s.behavior}</div>
       </div>
-      <div><strong>${s.confidence}%</strong></div>
+      <div class="score">${s.confidence}%</div>
     </div>
   `).join('');
-
-  if(!state.selectedSignal && state.signals.length){ showSignal(state.signals[0].id); }
+  document.getElementById('signalList').innerHTML = html;
+  if(!state.selectedSignal && state.signals.length) showSignal(state.signals[0].id);
 }
 
 window.showSignal = (id) => {
-  const signal = state.signals.find(s => s.id === id);
-  if(!signal) return;
-  state.selectedSignal = signal;
-  const matches = (signal.historical_matches || []).slice(0, 3);
+  const s = state.signals.find(x => x.id === id);
+  if(!s) return;
+  state.selectedSignal = s;
+  const matches = (s.historical_matches || []).slice(0, 4);
   document.getElementById('signalExplain').innerHTML = `
-    <p><strong>${signal.symbol} • ${signal.signal_type.toUpperCase()}</strong></p>
-    <p>Тип поведения: <strong>${signal.behavior}</strong><br>Вероятность продолжения: <strong>${signal.confidence}%</strong></p>
-    <p><strong>Причины:</strong><br>${signal.reasons.map(r => `• ${r}`).join('<br>')}</p>
-    <p><strong>Исторические совпадения:</strong><br>${matches.map(m => `• similarity ${Math.round(m.similarity*100)}% → результат ${m.result_pct}% за ${m.horizon_hours}ч`).join('<br>') || 'Нет данных'}</p>
+    <p><strong>${s.symbol} · ${s.signal_type.toUpperCase()}</strong></p>
+    <p>Тип поведения: <strong>${s.behavior}</strong><br>Вероятность отработки: <strong>${s.confidence}%</strong></p>
+    <p><strong>Причины:</strong><br>${s.reasons.map(r => `• ${r}`).join('<br>')}</p>
+    <p><strong>Исторические совпадения:</strong><br>${matches.map(m => `• sim ${Math.round(m.similarity*100)}% → ${m.result_pct}% за ${m.horizon_hours}ч`).join('<br>') || 'Нет данных'}</p>
   `;
 }
 
 function ingestTick(tick){
-  state.series[tick.symbol] = state.series[tick.symbol] || [];
+  if(!state.series[tick.symbol]) state.series[tick.symbol] = [];
   state.series[tick.symbol].push(tick.price);
-  if(state.series[tick.symbol].length > 240) state.series[tick.symbol].shift();
+  if(state.series[tick.symbol].length > 350) state.series[tick.symbol].shift();
 }
 
-async function pollMarkets(){
+async function loadMarkets(){
   const res = await fetch('/api/markets');
   state.markets = await res.json();
   state.markets.forEach(m => {
-    state.series[m.symbol] = state.series[m.symbol] || [];
-    if(!state.series[m.symbol].length){
-      for(let i=0;i<40;i++){
-        state.series[m.symbol].push(m.price * (1 + ((Math.random()-0.5)*0.012)));
-      }
+    if(!state.series[m.symbol]){
+      state.series[m.symbol] = [];
+      for(let i=0;i<120;i++) state.series[m.symbol].push(m.price * (1 + ((Math.random()-0.5)*0.01)));
     }
   });
-  renderWorkspace();
+  renderBoard();
 }
 
 async function loadSignals(){
@@ -399,24 +425,24 @@ async function loadSignals(){
 }
 
 function connectStream(){
-  const ws = new WebSocket((location.protocol==='https:'?'wss':'ws') + '://' + location.host + '/ws/stream');
-  ws.onmessage = (event) => {
-    const msg = JSON.parse(event.data);
+  const ws = new WebSocket((location.protocol === 'https:' ? 'wss' : 'ws') + '://' + location.host + '/ws/stream');
+  ws.onmessage = (e) => {
+    const msg = JSON.parse(e.data);
     ingestTick(msg.tick);
     if(msg.signals?.length){
-      state.signals = [...msg.signals, ...state.signals].slice(0, 80);
+      state.signals = [...msg.signals, ...state.signals].slice(0, 120);
       renderSignals();
     }
-    renderWorkspace();
+    renderBoard();
   };
-  ws.onclose = () => setTimeout(connectStream, 1300);
+  ws.onclose = () => setTimeout(connectStream, 1400);
 }
 
-exchangeChips();
-pollMarkets();
+renderExchangeBtns();
+loadMarkets();
 loadSignals();
 connectStream();
-setInterval(pollMarkets, 5000);
+setInterval(loadMarkets, 5000);
 </script>
 </body>
 </html>
