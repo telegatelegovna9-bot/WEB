@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Crypto Intelligence Screener</title>
+  <style>
+    :root { color-scheme: dark; }
+    body { font-family: Inter, system-ui, sans-serif; margin: 0; background: #0b1020; color: #e8edff; }
+    .topbar { display:flex; justify-content:space-between; align-items:center; padding:14px 20px; background:#111936; border-bottom:1px solid #23315f; }
+    .grid { display:grid; grid-template-columns: repeat(12, 1fr); gap: 12px; padding: 12px; }
+    .card { background:#131c3f; border:1px solid #23315f; border-radius:12px; padding:12px; box-shadow: 0 10px 20px rgba(0,0,0,.2); }
+    .markets { grid-column: span 4; min-height: 340px; }
+    .signals { grid-column: span 5; min-height: 340px; }
+    .analysis { grid-column: span 3; min-height: 340px; }
+    .chart { grid-column: span 8; min-height: 260px; }
+    .heatmap { grid-column: span 4; min-height: 260px; }
+    .item { display:flex; justify-content:space-between; border-bottom:1px dashed #33447d; padding:8px 0; font-size:14px; }
+    .pill { font-size:11px; padding:2px 8px; border-radius:999px; }
+    .pump,.pattern { background:#1d5f41; }
+    .dump { background:#742f2f; }
+    .order_book_density,.listing { background:#66511e; }
+    .score { font-weight:700; color:#91e0ff; }
+    .signal { margin:10px 0; padding:10px; border:1px solid #2f427f; border-radius:9px; cursor:pointer; }
+    .signal:hover { border-color:#56b2ff; }
+    .muted { color:#9eadde; font-size:12px; }
+    .drag-note { font-size:12px; color:#96a5dc; }
+    @media (max-width: 1024px) { .markets,.signals,.analysis,.chart,.heatmap { grid-column: span 12; } }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div>
+      <strong>Crypto Intelligence SaaS</strong>
+      <div class="muted">Real-time screener + signal explanations + probability score</div>
+    </div>
+    <div class="drag-note">Drag & drop cards to customize dashboard</div>
+  </div>
+
+  <main id="grid" class="grid">
+    <section class="card markets" draggable="true" id="markets">
+      <h3>Рынки</h3>
+      <div id="marketsList"></div>
+    </section>
+
+    <section class="card signals" draggable="true" id="signals">
+      <h3>Сигналы</h3>
+      <div id="signalsList"></div>
+    </section>
+
+    <section class="card analysis" draggable="true" id="analysis">
+      <h3>Панель анализа</h3>
+      <div id="analysisPanel" class="muted">Выберите сигнал для объяснения.</div>
+    </section>
+
+    <section class="card chart" draggable="true" id="chart">
+      <h3>График / Tape proxy</h3>
+      <canvas id="spark" width="720" height="220"></canvas>
+    </section>
+
+    <section class="card heatmap" draggable="true" id="heatmap">
+      <h3>Heatmap волатильности</h3>
+      <canvas id="heat" width="350" height="220"></canvas>
+    </section>
+  </main>
+
+<script>
+const state = { signals: [], markets: [], spark: [], selected: null };
+
+function renderMarkets(){
+  const el = document.getElementById('marketsList');
+  el.innerHTML = state.markets.slice(0,12).map(m => `
+    <div class="item">
+      <span>${m.symbol} <small class="muted">${m.exchange}</small></span>
+      <span>${m.price.toFixed ? m.price.toFixed(4) : m.price} <small style="color:${m.change_pct>=0?'#5fd39d':'#ff8f8f'}">${m.change_pct.toFixed(2)}%</small></span>
+    </div>
+  `).join('');
+}
+
+function renderSignals(){
+  const el = document.getElementById('signalsList');
+  el.innerHTML = state.signals.slice(0,25).map(s => `
+    <div class="signal" onclick="showSignal('${s.id}')">
+      <div style="display:flex;justify-content:space-between;">
+        <strong>${s.symbol}</strong>
+        <span class="pill ${s.signal_type}">${s.signal_type}</span>
+      </div>
+      <div class="muted">${s.behavior} · Probability <span class="score">${s.confidence}%</span></div>
+    </div>
+  `).join('');
+}
+
+window.showSignal = (id) => {
+  state.selected = state.signals.find(s => s.id === id);
+  const el = document.getElementById('analysisPanel');
+  if(!state.selected){ el.textContent='Сигнал не найден'; return; }
+  const s = state.selected;
+  el.innerHTML = `
+    <strong>${s.symbol} · ${s.signal_type}</strong>
+    <p>Тип поведения: <b>${s.behavior}</b></p>
+    <p>Вероятность отработки: <b>${s.confidence}%</b></p>
+    <p><b>Причины:</b><br>${s.reasons.map(r=>`• ${r}`).join('<br>')}</p>
+    <p><b>Исторические совпадения:</b><br>${s.historical_matches.map(m=>`• sim ${Math.round(m.similarity*100)}% → ${m.result_pct}% / ${m.horizon_hours}ч`).join('<br>')}</p>
+  `;
+}
+
+function drawSpark(){
+  const c = document.getElementById('spark'); const ctx = c.getContext('2d');
+  ctx.clearRect(0,0,c.width,c.height);
+  if(state.spark.length < 2) return;
+  const max = Math.max(...state.spark), min = Math.min(...state.spark);
+  ctx.strokeStyle = '#74c9ff'; ctx.lineWidth = 2; ctx.beginPath();
+  state.spark.forEach((v,i)=>{
+    const x = (i/(state.spark.length-1))*c.width;
+    const y = c.height - ((v-min)/(max-min||1))*c.height;
+    if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+  });
+  ctx.stroke();
+}
+
+function drawHeat(){
+  const c = document.getElementById('heat'); const ctx = c.getContext('2d');
+  ctx.clearRect(0,0,c.width,c.height);
+  const rows = 6, cols = 8;
+  for(let r=0;r<rows;r++) for(let col=0; col<cols; col++){
+    const v = Math.random();
+    ctx.fillStyle = `rgba(${Math.floor(255*v)}, ${Math.floor(160*(1-v))}, 80, .75)`;
+    ctx.fillRect(col*(c.width/cols)+2, r*(c.height/rows)+2, c.width/cols-4, c.height/rows-4);
+  }
+}
+
+async function pollMarkets(){
+  const r = await fetch('/api/markets');
+  state.markets = await r.json();
+  renderMarkets();
+}
+
+async function initSignals(){
+  const r = await fetch('/api/signals');
+  state.signals = await r.json();
+  renderSignals();
+}
+
+function attachDnD(){
+  const grid = document.getElementById('grid');
+  let dragged = null;
+  grid.querySelectorAll('.card').forEach(card => {
+    card.addEventListener('dragstart', () => dragged = card);
+    card.addEventListener('dragover', e => e.preventDefault());
+    card.addEventListener('drop', e => { e.preventDefault(); if(dragged && dragged !== card){
+      const cards = [...grid.children];
+      const a = cards.indexOf(dragged), b = cards.indexOf(card);
+      if(a < b) grid.insertBefore(card, dragged); else grid.insertBefore(dragged, card);
+      localStorage.setItem('layout', [...grid.children].map(x=>x.id).join(','));
+    }});
+  });
+  const saved = localStorage.getItem('layout');
+  if(saved){ saved.split(',').forEach(id => { const n = document.getElementById(id); if(n) grid.appendChild(n); }); }
+}
+
+function connectWS(){
+  const ws = new WebSocket((location.protocol==='https:'?'wss':'ws') + '://' + location.host + '/ws/stream');
+  ws.onmessage = (e) => {
+    const msg = JSON.parse(e.data);
+    const tick = msg.tick;
+    state.spark.push(tick.price); if(state.spark.length > 120) state.spark.shift();
+    drawSpark();
+    if(msg.signals?.length){
+      state.signals = [...msg.signals, ...state.signals].slice(0, 100);
+      renderSignals();
+      if(!state.selected && state.signals.length){ showSignal(state.signals[0].id); }
+    }
+  }
+  ws.onclose = () => setTimeout(connectWS, 2000);
+}
+
+setInterval(() => { drawHeat(); pollMarkets(); }, 3000);
+attachDnD(); drawHeat(); drawSpark(); pollMarkets(); initSignals(); connectWS();
+</script>
+</body>
+</html>
