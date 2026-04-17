@@ -1,8 +1,8 @@
 from .base import BaseExchangeConnector
 from .binance import BinanceConnector
+from .okx import OKXConnector
 
 # Import other exchanges here when implemented
-# from .okx import OKXConnector
 # from .bybit import BybitConnector
 # from .mexc import MEXCConnector
 # from .gate import GateConnector
@@ -14,6 +14,7 @@ from ...core.enums import Exchange
 
 EXCHANGE_CONNECTORS: Dict[Exchange, Type[BaseExchangeConnector]] = {
     Exchange.BINANCE: BinanceConnector,
+    Exchange.OKX: OKXConnector,
     # Add other exchanges here
 }
 

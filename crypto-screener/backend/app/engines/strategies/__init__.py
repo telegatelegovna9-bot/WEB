@@ -1,6 +1,7 @@
 from .base import BaseStrategy
 from .pump_dump import PumpDumpStrategy
 from .orderbook_density import OrderBookDensityStrategy
+from .breakout import BreakoutStrategy
 
 from typing import Dict, List, Type, Any
 
@@ -8,6 +9,7 @@ from typing import Dict, List, Type, Any
 STRATEGIES: Dict[str, Type[BaseStrategy]] = {
     'pump_dump_detector': PumpDumpStrategy,
     'orderbook_density_detector': OrderBookDensityStrategy,
+    'breakout_detector': BreakoutStrategy,
 }
 
 
@@ -35,6 +37,7 @@ __all__ = [
     'BaseStrategy',
     'PumpDumpStrategy',
     'OrderBookDensityStrategy',
+    'BreakoutStrategy',
     'get_strategy',
     'get_all_strategies',
     'STRATEGIES'
