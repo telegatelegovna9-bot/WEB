@@ -1,6 +1,5 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Query, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 from typing import List, Optional
 import asyncio
 import json
@@ -44,10 +43,10 @@ async def startup_event():
     exchange_manager.add_connector(BinanceConnector())
     exchange_manager.add_connector(OKXConnector())
     exchange_manager.add_connector(BybitConnector())
-    
+
     # Initialize connections
     await exchange_manager.initialize()
-    
+
     # Start background tasks
     asyncio.create_task(fetch_tickers_periodically())
     asyncio.create_task(generate_demo_signals())
@@ -62,36 +61,40 @@ async def shutdown_event():
 
 async def fetch_tickers_periodically():
     """Fetch tickers from all exchanges every 5 seconds"""
+    global latest_tickers, latest_signals
+    
     while True:
         try:
             tickers = await exchange_manager.get_all_tickers()
             if tickers:
                 latest_tickers.clear()
                 latest_tickers.extend(tickers[:100])  # Keep top 100
-                
+
                 # Analyze for signals
                 for ticker in tickers[:20]:  # Analyze top 20
                     signal = intelligence_engine.analyze_signal(ticker)
                     if signal:
                         latest_signals.insert(0, signal)
                         latest_signals = latest_signals[:50]  # Keep last 50 signals
-                        
+
                 # Broadcast to WebSocket clients
                 await broadcast_data()
-                
+
         except Exception as e:
             print(f"Error fetching tickers: {e}")
-            
+
         await asyncio.sleep(5)
 
 
 async def generate_demo_signals():
     """Generate realistic demo signals for demonstration"""
+    global latest_signals, latest_tickers
+    
     demo_symbols = [
         "BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT", "XRPUSDT",
         "ADAUSDT", "DOGEUSDT", "AVAXUSDT", "TRXUSDT", "LINKUSDT"
     ]
-    
+
     while True:
         try:
             # Find real ticker data
@@ -101,10 +104,10 @@ async def generate_demo_signals():
                     if t.symbol == symbol:
                         ticker = t
                         break
-                        
+
                 if not ticker:
                     continue
-                    
+
                 # Randomly generate signals based on real data
                 import random
                 if random.random() < 0.3:  # 30% chance every cycle
@@ -115,16 +118,16 @@ async def generate_demo_signals():
                     else:
                         modified_ticker.price_change_percent_24h = random.uniform(-25, -5)
                     modified_ticker.quote_volume_24h = random.uniform(50_000_000, 500_000_000)
-                    
+
                     signal = intelligence_engine.analyze_signal(modified_ticker)
                     if signal:
                         latest_signals.insert(0, signal)
                         latest_signals = latest_signals[:50]
                         await broadcast_data()
-                        
+
         except Exception as e:
             print(f"Demo signal error: {e}")
-            
+
         await asyncio.sleep(10)
 
 
@@ -132,7 +135,7 @@ async def broadcast_data():
     """Broadcast latest data to all connected WebSocket clients"""
     if not active_connections:
         return
-        
+
     message = {
         "type": "update",
         "tickers": [t.dict() for t in latest_tickers[:50]],
@@ -141,14 +144,14 @@ async def broadcast_data():
         "densities": [d.dict() for d in latest_densities],
         "timestamp": datetime.utcnow().isoformat()
     }
-    
+
     disconnected = []
     for connection in active_connections:
         try:
             await connection.send_json(message)
         except:
             disconnected.append(connection)
-            
+
     # Remove disconnected clients
     for conn in disconnected:
         active_connections.remove(conn)
@@ -159,7 +162,7 @@ async def websocket_endpoint(websocket: WebSocket):
     """WebSocket endpoint for real-time updates"""
     await websocket.accept()
     active_connections.append(websocket)
-    
+
     # Send initial data
     initial_data = {
         "type": "initial",
@@ -168,7 +171,7 @@ async def websocket_endpoint(websocket: WebSocket):
         "stats": get_stats().dict()
     }
     await websocket.send_json(initial_data)
-    
+
     try:
         while True:
             # Keep connection alive, receive messages from client
@@ -189,7 +192,7 @@ def get_stats() -> ScreenerStats:
     top_gainers = sorted(latest_tickers, key=lambda x: x.price_change_percent_24h, reverse=True)[:6]
     top_losers = sorted(latest_tickers, key=lambda x: x.price_change_percent_24h)[:6]
     top_volume = sorted(latest_tickers, key=lambda x: x.quote_volume_24h, reverse=True)[:6]
-    
+
     return ScreenerStats(
         total_signals=len(latest_signals),
         signals_last_hour=min(len(latest_signals), 20),
@@ -213,25 +216,24 @@ async def get_tickers(
 ):
     """Get all tickers with filtering and sorting"""
     tickers = latest_tickers.copy()
-    
+
     # Filter by exchange
     if exchange:
         tickers = [t for t in tickers if t.exchange == exchange]
-        
+
     # Filter by search query
     if search:
         search_upper = search.upper()
         tickers = [t for t in tickers if search_upper in t.symbol]
-        
+
     # Sort
-    sort_key = getattr(TickerData.__fields__.get(sort_by, None), 'default', 0)
     if sort_by == "price_change_percent_24h":
         tickers.sort(key=lambda x: x.price_change_percent_24h, reverse=True)
     elif sort_by == "quote_volume_24h":
         tickers.sort(key=lambda x: x.quote_volume_24h, reverse=True)
     elif sort_by == "price":
         tickers.sort(key=lambda x: x.price, reverse=True)
-        
+
     return {"tickers": tickers[:limit]}
 
 
@@ -245,24 +247,24 @@ async def get_signals(
 ):
     """Get signals with filtering"""
     signals = latest_signals.copy()
-    
+
     # Filter by exchange
     if exchange:
         signals = [s for s in signals if s.exchange == exchange]
-        
+
     # Filter by signal type
     if signal_type:
         signals = [s for s in signals if s.type == signal_type]
-        
+
     # Filter by minimum probability
     if min_probability > 0:
         signals = [s for s in signals if s.intelligence.probability_score >= min_probability]
-        
+
     # Filter by search
     if search:
         search_upper = search.upper()
         signals = [s for s in signals if search_upper in s.symbol]
-        
+
     return {"signals": signals[:limit]}
 
 
@@ -278,11 +280,11 @@ async def get_orderbook(exchange: ExchangeType, symbol: str):
     connector = exchange_manager.connectors.get(exchange)
     if not connector:
         raise HTTPException(status_code=404, detail="Exchange not found")
-        
+
     orderbook = await connector.get_orderbook(symbol)
     if not orderbook:
         raise HTTPException(status_code=404, detail="Orderbook not found")
-        
+
     return orderbook
 
 
